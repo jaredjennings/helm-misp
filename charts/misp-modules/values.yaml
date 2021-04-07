@@ -5,9 +5,13 @@
 replicaCount: 1
 
 image:
-  repository: nginx
+  repository: coolacid/misp-docker
   pullPolicy: IfNotPresent
-  # Overrides the image tag whose default is the chart appVersion.
+  # Overrides the image tag whose default is the chart
+  # appVersion. N.B. in the particular case of coolacid's
+  # Dockerization of MISP, the misp-docker repo has multiple different
+  # images, and the tags not only distinguish between versions, but
+  # also between images.
   tag: ""
 
 imagePullSecrets: []
@@ -77,3 +81,6 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
+redis:
+  hostname: ""

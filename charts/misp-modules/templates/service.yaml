@@ -1,9 +1,9 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "misp-modules.fullname" . }}
+  name: {{ include "mispModules.fullname" . }}
   labels:
-    {{- include "misp-modules.labels" . | nindent 4 }}
+    {{- include "mispModules.labels" . | nindent 4 }}
 spec:
   type: {{ .Values.service.type }}
   ports:
@@ -12,4 +12,4 @@ spec:
       protocol: TCP
       name: http
   selector:
-    {{- include "misp-modules.selectorLabels" . | nindent 4 }}
+    {{- include "mispModules.selectorLabels" . | nindent 4 }}

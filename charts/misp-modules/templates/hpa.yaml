@@ -2,14 +2,14 @@
 apiVersion: autoscaling/v2beta1
 kind: HorizontalPodAutoscaler
 metadata:
-  name: {{ include "misp-modules.fullname" . }}
+  name: {{ include "mispModules.fullname" . }}
   labels:
-    {{- include "misp-modules.labels" . | nindent 4 }}
+    {{- include "mispModules.labels" . | nindent 4 }}
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: {{ include "misp-modules.fullname" . }}
+    name: {{ include "mispModules.fullname" . }}
   minReplicas: {{ .Values.autoscaling.minReplicas }}
   maxReplicas: {{ .Values.autoscaling.maxReplicas }}
   metrics:
