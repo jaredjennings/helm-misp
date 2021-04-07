@@ -5,9 +5,13 @@
 replicaCount: 1
 
 image:
-  repository: nginx
+  repository: coolacid/misp-docker
   pullPolicy: IfNotPresent
-  # Overrides the image tag whose default is the chart appVersion.
+  # Overrides the image tag whose default is the chart
+  # appVersion. N.B. in the particular case of coolacid's
+  # Dockerization of MISP, the misp-docker repo has multiple different
+  # images, and the tags not only distinguish between versions, but
+  # also between images.
   tag: ""
 
 imagePullSecrets: []
@@ -33,6 +37,12 @@ securityContext: {}
   #   drop:
   #   - ALL
   # readOnlyRootFilesystem: true
+
+  #
+  # It appears some of the supervisord scripts need to be root,
+  # because they write files in /etc/cron.d.
+  #
+  
   # runAsNonRoot: true
   # runAsUser: 1000
 
@@ -77,3 +87,34 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
+global:
+  storageClass: local-path
+
+# Mariadb chart defaults to a single node.
+mariadb:
+  auth:
+    username: misp
+    database: misp
+  image:
+    # Without this, you don't get any logs the database server puts
+    # out, only nice colorful things said by supervisord scripts, such
+    # as "===> Starting the database."
+    debug: true
+
+# Redis chart settings here are for a single node.
+redis:
+  cluster:
+    enabled: false
+  master:
+    persistence:
+      storageClass: local-path
+
+mispModules:
+  enabled: true
+  # A hostname to connect to Redis. Ignored if empty.
+  redis:
+    hostname: ""
+
+# "Initialize MISP, things includes, attempting to import SQL and the Files DIR"
+initialSetup: true

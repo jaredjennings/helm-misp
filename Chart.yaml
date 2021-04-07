@@ -1,24 +1,24 @@
 apiVersion: v2
 name: misp
-description: A Helm chart for Kubernetes
-
-# A chart can be either an 'application' or a 'library' chart.
-#
-# Application charts are a collection of templates that can be packaged into versioned archives
-# to be deployed.
-#
-# Library charts provide useful utilities or functions for the chart developer. They're included as
-# a dependency of application charts to inject those utilities and functions into the rendering
-# pipeline. Library charts do not define any templates and therefore cannot be deployed.
+description: "Unofficial Helm chart for coolacid's Dockerization of MISP, \"The Open Source Threat Intelligence Sharing Platform\""
 type: application
-
-# This is the chart version. This version number should be incremented each time you make changes
-# to the chart and its templates, including the app version.
-# Versions are expected to follow Semantic Versioning (https://semver.org/)
 version: 0.1.0
-
-# This is the version number of the application being deployed. This version number should be
-# incremented each time you make changes to the application. Versions are not expected to
-# follow Semantic Versioning. They should reflect the version the application is using.
-# It is recommended to use it with quotes.
-appVersion: "1.16.0"
+# There is a different chart for misp-modules, but coolacid puts both
+# MISP core and MISP modules in the same hub.docker.com repo. If you
+# override the tag, be sure to include "core-" in your override.
+appVersion: "core-v2.4.140a"
+sources:
+  - https://github.com/coolacid/docker-misp
+maintainers:
+  - name: "Jared Jennings"
+    email: "jjennings@fastmail.fm"
+icon: https://www.misp-project.org/assets/images/misp-small.png
+dependencies:
+  - name: mariadb
+    version: 9.3.5
+    repository: "https://charts.bitnami.com/bitnami"
+  - name: redis
+    version: 12.8.3
+    repository: "https://charts.bitnami.com/bitnami"
+  - name: misp-modules
+    version: 0.1.0

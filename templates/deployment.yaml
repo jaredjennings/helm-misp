@@ -33,9 +33,38 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            # this is what coolacid's docker compose.yml says
+            - name: CRON_USER_ID
+              value: "1"
+            # "Initialize MISP, things includes, attempting to import SQL and the Files DIR"
+            - name: INIT
+              value: {{ .Values.initialSetup | quote }}
+            - name: MYSQL_HOST
+              {{/* FIXME: can't use the mariadb.primary.fullname template because it gets evaluated in the context of this chart, and doesn't work right */}}
+              value: {{ .Release.Name }}-mariadb
+            # we allow MYSQL_PORT to take its default
+            - name: MYSQL_DATABASE
+              value: {{ .Values.mariadb.auth.database }}
+            - name: MYSQL_USER
+              value: {{ .Values.mariadb.auth.username }}
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ printf "%s-%s" .Release.Name "mariadb" | quote }}
+                  key: mariadb-password
+            - name: REDIS_FQDN
+              value: {{ .Release.Name }}-redis-master
+            {{- if .Values.mispModules.enabled }}
+            - name: MISP_MODULES_FQDN
+              value: {{ printf "http://%s" (include "mispModules.fullname" .) | quote }}
+            {{- end }}
           ports:
             - name: http
               containerPort: 80
+              protocol: TCP
+            - name: https
+              containerPort: 443
               protocol: TCP
           livenessProbe:
             httpGet:
@@ -45,6 +74,13 @@ spec:
             httpGet:
               path: /
               port: http
+          startupProbe:
+            httpGet:
+              path: /
+              port: http
+            # initialization took five minutes for me. this is eight
+            timeoutSeconds: 30
+            failureThreshold: 16
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}
@@ -59,3 +95,4 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      
