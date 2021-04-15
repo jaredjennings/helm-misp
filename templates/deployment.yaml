@@ -20,6 +20,17 @@ spec:
       labels:
         {{- include "misp.selectorLabels" . | nindent 8 }}
     spec:
+      volumes:
+        - name: gnupg-home
+          emptyDir: {}
+        {{- with .Values.gnupg }}
+        - name: private-key
+          secret:
+            secretName: {{ .privateKeySecret }}
+        - name: passphrase
+          secret:
+            secretName: {{ .passphraseSecret }}
+        {{- end }}
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
@@ -27,6 +38,36 @@ spec:
       serviceAccountName: {{ include "misp.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      initContainers:
+        - name: {{ printf "%s-%s" (include "misp.fullname" .) "gnupg-import" | quote }}
+          securityContext:
+            runAsNonRoot: true
+            {{- /* FIXME: is this always right? */}}
+            runAsUser: 33
+          {{- with .Values.gnupg }}
+          {{- with .importing.image }}
+          image: {{ printf "%s:%s" .repository .tag | quote }}
+          imagePullPolicy: {{ .pullPolicy }}
+          {{- end }}
+          volumeMounts:
+            - name: private-key
+              mountPath: /tmp/misp-gpg.priv
+              subPath: gnupg-private-key
+            - name: passphrase
+              mountPath: /tmp/misp-gpg.passphrase
+              subPath: passphrase
+            - name: gnupg-home
+              mountPath: {{ .homeDirectory }}
+          command:
+            - 'gpg'
+            - '--homedir'
+            - {{ .homeDirectory }}
+            - '--batch'
+            - '--passphrase-file'
+            - '/tmp/misp-gpg.passphrase'
+            - '--import'
+            - '/tmp/misp-gpg.priv'
+          {{- end }}
       containers:
         - name: {{ .Chart.Name }}
           securityContext:
@@ -40,6 +81,9 @@ spec:
             # "Initialize MISP, things includes, attempting to import SQL and the Files DIR"
             - name: INIT
               value: {{ .Values.initialSetup | quote }}
+            # Don't redirect port 80 traffic to port 443.
+            - name: NOREDIR
+              value: "true"
             - name: MYSQL_HOST
               {{/* FIXME: can't use the mariadb.primary.fullname template because it gets evaluated in the context of this chart, and doesn't work right */}}
               value: {{ .Release.Name }}-mariadb
@@ -66,6 +110,12 @@ spec:
             - name: https
               containerPort: 443
               protocol: TCP
+          volumeMounts:
+            - name: passphrase
+              mountPath: {{ .Values.gnupg.passphraseFile }}
+              subPath: passphrase
+            - name: gnupg-home
+              mountPath: {{ .Values.gnupg.homeDirectory }}
           livenessProbe:
             httpGet:
               path: /
@@ -78,9 +128,8 @@ spec:
             httpGet:
               path: /
               port: http
-            # initialization took five minutes for me. this is eight
-            timeoutSeconds: 30
-            failureThreshold: 16
+            timeoutSeconds: 5
+            failureThreshold: 200
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}

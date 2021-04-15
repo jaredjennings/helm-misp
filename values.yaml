@@ -118,3 +118,29 @@ mispModules:
 
 # "Initialize MISP, things includes, attempting to import SQL and the Files DIR"
 initialSetup: true
+
+# Creating the GNUPG secrets:
+#     pwgen -s 32
+#     kubectl create secret -n misp generic --from-literal='passphrase=<PASSPHRASE>' misp-gnupg-passphrase
+#     cd /tmp
+#     mkdir mgpgh
+#     gpg --homedir=mgpgh --gen-key
+#     mkdir mgpghs
+#     gpg --homedir=mgpgh --export-secret-keys -a -o mgpghs/gnupg-private-key
+#     kubectl create secret -n misp generic --from-file=mgpghs misp-gnupg-private-key
+#     rm -rf mgpgh mgpghs
+ 
+gnupg:
+  # A Secret containing a GnuPG private key. You must construct this
+  # yourself.
+  privateKeySecret: "misp-gnupg-private-key"
+  # A Secret with the passphrase to unlock the private key.
+  passphraseSecret: "misp-gnupg-passphrase"
+  # This is constructed by the container's scripts; don't change it
+  homeDirectory: "/var/www/MISP/.gnupg"
+  passphraseFile: "/var/www/MISP/.gnupg-passphrase"
+  importing:
+    image:
+      repository: 'olbat/gnupg'
+      pullPolicy: IfNotPresent
+      tag: 'light'
