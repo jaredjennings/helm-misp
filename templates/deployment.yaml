@@ -84,6 +84,12 @@ spec:
             # Don't redirect port 80 traffic to port 443.
             - name: NOREDIR
               value: "true"
+            - name: HOSTNAME
+              {{- if .Values.ingress.enabled }}
+              value: {{ printf "https://%s" (mustFirst .Values.ingress.hosts).host | quote }}
+              {{- else }}
+              value: {{ printf "http://%s" (include "misp.fullname" .) | quote }}
+              {{- end }}
             - name: MYSQL_HOST
               {{/* FIXME: can't use the mariadb.primary.fullname template because it gets evaluated in the context of this chart, and doesn't work right */}}
               value: {{ .Release.Name }}-mariadb
