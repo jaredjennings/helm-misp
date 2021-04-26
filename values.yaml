@@ -126,6 +126,7 @@ initialSetup: true
 #     cd /tmp
 #     mkdir mgpgh
 #     gpg --homedir=mgpgh --gen-key
+#     # ^^ when you are generating the key you say what email address it is for
 #     mkdir mgpghs
 #     gpg --homedir=mgpgh --export-secret-keys -a -o mgpghs/gnupg-private-key
 #     kubectl create secret -n misp generic --from-file=mgpghs misp-gnupg-private-key
@@ -137,9 +138,11 @@ gnupg:
   privateKeySecret: "misp-gnupg-private-key"
   # A Secret with the passphrase to unlock the private key.
   passphraseSecret: "misp-gnupg-passphrase"
+  # The email address for which the key was created.
+  emailAddress: "misp@example.com"
   # This is constructed by the container's scripts; don't change it
-  homeDirectory: "/var/www/MISP/.gnupg"
-  passphraseFile: "/var/www/MISP/.gnupg-passphrase"
+  homeDirectory: "/var/www/.gnupg"
+  passphraseFile: "/var/www/.gnupg-passphrase"
   importing:
     image:
       repository: 'olbat/gnupg'
