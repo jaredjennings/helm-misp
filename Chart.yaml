@@ -2,7 +2,7 @@ apiVersion: v2
 name: misp
 description: "Unofficial Helm chart for coolacid's Dockerization of MISP, \"The Open Source Threat Intelligence Sharing Platform\""
 type: application
-version: 0.1.0
+version: 1.0.0
 # There is a different chart for misp-modules, but coolacid puts both
 # MISP core and MISP modules in the same hub.docker.com repo. If you
 # override the tag, be sure to include "core-" in your override.
