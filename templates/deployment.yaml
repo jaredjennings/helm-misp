@@ -39,7 +39,7 @@ spec:
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       initContainers:
-        - name: {{ printf "%s-%s" (include "misp.fullname" .) "gnupg-import" | quote }}
+        - name: "gnupg-import"
           securityContext:
             runAsNonRoot: true
             {{- /* FIXME: is this always right? */}}

@@ -93,6 +93,9 @@ global:
 
 # Mariadb chart defaults to a single node.
 mariadb:
+  # If you don't set mariadb.auth.password and
+  # mariadb.auth.root_password, you cannot effectively helm upgrade
+  # this chart.
   auth:
     username: misp
     database: misp
@@ -148,3 +151,14 @@ gnupg:
       repository: 'olbat/gnupg'
       pullPolicy: IfNotPresent
       tag: 'light'
+
+# Authentication/authorization via OpenID Connect. See
+# <https://github.com/MISP/MISP/tree/2.4/app/Plugin/OidcAuth>. Values
+# here are named with snake_case according to the convention in that
+# documentation, not camelCase as is usual with Helm.
+oidc:
+  # Use OIDC for authn/authz.
+  enabled: false
+  provider_url: "https://keycloak.example.com/auth/realms/example_realm/protocol/openid-connect/auth"
+  client_id: "misp"
+  client_secret: "01234567-5768-abcd-cafe-012345670123"
